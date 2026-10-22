@@ -13,7 +13,7 @@ from pathlib import Path    # pathlib: libreria de Python para manejar rutas de
 
 # --- Rango de fechas a extraer --------------------------------------------
 # Para la clase usamos 2026 (rapido). Para el proyecto, amplien a 2023-01-01.
-FECHA_INICIO = date(2026, 1, 1)     # primer dia que se descarga
+FECHA_INICIO = date(2024, 1, 1)     # primer dia que se descarga
 FECHA_FIN = date(2026, 9, 30)       # ultimo dia que se descarga
 
 # --- Rutas (relativas a la raiz del proyecto) ------------------------------
@@ -33,7 +33,16 @@ XM_METRICAS = [
     ("PrecBolsNaci", "Sistema", "hourly", "xm_precio_bolsa"),   # precio de bolsa por hora
     ("DemaReal", "Sistema", "hourly", "xm_demanda"),            # demanda real por hora
     ("PorcVoluUtilDiar", "Sistema", "daily", "xm_embalses"),    # % de embalses por dia
+    ("Gene", "Recurso", "hourly", "xm_generacion"),
+    ("AporEner", "Sistema", "daily", "xm_aportes_energia"),      # Aportes de energía por sistema
 ]
+
+XM_CATALOGO_RECURSOS = {
+    "metrica": "ListadoRecursos",
+    "entidad": "Sistema",
+    "periodo": "lists",
+    "nombre": "xm_listado_recursos",
+}
 
 # --- Fuente 2: IDEAM en datos.gov.co (API Socrata / SoQL) ------------------
 IDEAM_URL = "https://www.datos.gov.co/resource/s54a-sgyg.json"   # precipitacion

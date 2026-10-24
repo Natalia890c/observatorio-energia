@@ -65,6 +65,46 @@ def extraer_metrica(metrica: str, entidad: str, periodo: str, nombre: str, forza
     # y guardar_bronce() la guarda en data/bronze/<nombre>.parquet
     guardar_bronce(pd.DataFrame(filas), nombre, fuente="XM", origen=f"{url} MetricId={metrica}")
 
+def extraer_catalogo_recursos(forzar: bool = False) -> None:
+    catalogo = config.XM_CATALOGO_RECURSOS
+    nombre = catalogo["nombre"]
+    if ya_existe(nombre, forzar):
+        return
+
+    url = config.XM_URL.format(periodo=catalogo["periodo"])
+    cuerpo = {
+        "MetricId": catalogo["metrica"],
+        "Entity": catalogo["entidad"],
+        "Filter": [],
+    }
+
+    respuesta = http_json("POST", url, json=cuerpo)
+    filas = []
+
+    for item in respuesta.get("Items", []):
+        fecha = item.get("Date")
+        for entidad in item.get("ListEntities", []):
+            valores = entidad.get("Values", {})
+            fila = {
+                "Date": fecha,
+                "Id": entidad.get("Id"),
+                **valores,
+            }
+            filas.append(fila)
+
+    if not filas:
+        raise ValueError(
+            "XM devolvió un catálogo de recursos vacío"
+            "o con una estructura inesperada."
+        )
+
+    log(f" {catalogo['metrica']}: {len(filas)} recursos")
+    guardar_bronce(
+        pd.DataFrame(filas),
+        nombre,
+        fuente="XM",
+        origen=f"{url} MetricId={catalogo['metrica']}",
+    )
 
 def extraer(forzar: bool = False) -> None:
     """Descarga las 3 metricas de XM definidas en config.XM_METRICAS."""
@@ -74,6 +114,8 @@ def extraer(forzar: bool = False) -> None:
     # el for la desempaca en 4 variables a la vez.
     for metrica, entidad, periodo, nombre in config.XM_METRICAS:
         extraer_metrica(metrica, entidad, periodo, nombre, forzar)
+
+    extraer_catalogo_recursos(forzar)
 
 
 # ---------------------------------------------------------------------------

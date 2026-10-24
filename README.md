@@ -1,4 +1,4 @@
-# Observatorio Energía y Clima – Equipo 
+# Observatorio Energía y Clima – Equipo
 
 **Natalia Castro Ospino**
 **Oscar Márquez Arrieta**

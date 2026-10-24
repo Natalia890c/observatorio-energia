@@ -10,11 +10,9 @@
 | Nombre | Usuario GitHub | Rol |
 |---|---|---|
 | Natalia Castro | @Natalia890c | Líder técnico / Data Engineer |
-| Oscar Márquez | @OscarLMAR
- | Data Quality Analyst |
+| Oscar Márquez | @OscarLMAR | Data Quality Analyst |
 | Natalia Castro | @Natalia890c | Analytics Engineer |
-| Oscar Márquez | @OscarLMAR
- | BI Analyst / Storyteller |
+| Oscar Márquez | @OscarLMAR | BI Analyst / Storyteller |
 
 ## 🎯 Objetivo
 

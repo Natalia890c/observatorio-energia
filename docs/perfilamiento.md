@@ -344,7 +344,3 @@
 6. **Formato heterogéneo en Excel EnerAndes.** `col_0` presenta **2, 2, 4 y 4** filas no interpretables como periodo mensual en 2023, 2024, 2025 y 2026 respectivamente; incluyen encabezados/títulos y filas `TOTAL`, que se conservaron intencionalmente en bronce. Además, las hojas tienen entre **10 y 11 columnas** y encabezados distintos.
 7. **Tipos en la capa bronce.** En los 14 Parquet, los valores se leen con tipo `str`, incluidos campos numéricos y fechas. Es coherente con conservar los datos de origen sin tipar, pero la capa analítica deberá convertirlos y validar errores antes de cálculos.
 8. **Nulos concentrados en EPM y EnerAndes.** Los 9 archivos NOAA, IDEAM y XM no presentan nulos en las columnas perfiladas; los nulos se concentran en las cuatro hojas de EnerAndes y la fila tarifaria EPM detallada arriba.
-
-## Consideraciones
-
-Este perfil se calculó sobre datos de bronce existentes, sin modificar los Parquet originales. Un nulo detectado no se reemplazó ni se imputó. Los duplicados se reportan como señal para revisar en plata; no se eliminaron.

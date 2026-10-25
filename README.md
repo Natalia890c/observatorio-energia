@@ -37,6 +37,7 @@ python -m pip install -r requirements.txt
 python -m src.pipeline          # descarga las fuentes a data/bronze/
 python -m src.pipeline --forzar # vuelve a descargar las fuentes
 python -m src.consultar         # consultas SQL de BI con DuckDB
+python -m pytest                # ejecuta las pruebas automáticas
 ```
 
 El pipeline ejecuta los extractores de XM, IDEAM, NOAA, EnerAndes y las tarifas históricas de EPM. Los archivos existentes se omiten cuando corresponde, salvo que se solicite una nueva extracción con --forzar.

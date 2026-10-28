@@ -48,15 +48,18 @@ XM_CATALOGO_RECURSOS = {
 IDEAM_URL = "https://www.datos.gov.co/resource/s54a-sgyg.json"   # precipitacion
 IDEAM_DEPARTAMENTO = "ANTIOQUIA"
 IDEAM_DIAS_VENTANA = 7          # pedir de a una semana evita timeouts del servidor
-# El IDEAM es la fuente MAS LENTA (5 a 30 s por semana). Para la clase pedimos
-# solo jun-sep 2026. Para el proyecto, usen el mismo rango de las demas fuentes.
-IDEAM_FECHA_INICIO = date(2026, 6, 1)
+# El IDEAM es la fuente MAS LENTA (5 a 30 s por semana).
+IDEAM_FECHA_INICIO = date(2025, 1, 1)
+IDEAM_TEMPERATURA_URL = "https://www.datos.gov.co/resource/sbwg-7ju4.json"
 
 # --- Fuente 3: NOAA, indice de El Nino (archivo de texto) ------------------
 NOAA_ONI_URL = "https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt"
 
 # --- Fuente 4: archivo interno de EnerAndes (Excel) ------------------------
 ENERANDES_EXCEL = DIR_INSUMOS / "ventas_enerandes_2023_2026.xlsx"
+
+# --- Fuente 5: tarifas históricas de energía de EPM (datos.gov.co) --------
+EPM_TARIFAS_URL = "https://www.datos.gov.co/resource/sfcd-b3ey.json"
 
 # --- Comportamiento HTTP ---------------------------------------------------
 HTTP_TIMEOUT = 120      # segundos que se espera una respuesta antes de rendirse

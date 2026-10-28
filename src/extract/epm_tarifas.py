@@ -23,10 +23,7 @@ def extraer(forzar: bool = False) -> None:
             params={
                 "$limit": PAGINA,
                 "$offset": offset,
-                "$order": (
-                    "year, mes, tipodetarifa, nivel, rangodeconsumo, tipodedato, "
-                    "propiedadepm, compartido, propiedaddelcliente, punta, fueradepunta"
-                ),
+                "$order": ":id",
             },
         )
         filas.extend(pagina)

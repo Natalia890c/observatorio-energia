@@ -1,3 +1,6 @@
+import pytest
+import src.extract.epm_tarifas as epm_tarifas
+
 from datetime import date
 
 from src import config
@@ -60,3 +63,50 @@ def test_extraer_metrica_skips_existing_output(tmp_path, monkeypatch):
     monkeypatch.setattr("src.extract.xm.http_json", no_debe_hacer_peticion)
 
     extraer_metrica("MetricId", "Sistema", "daily", nombre, forzar=False)
+
+
+def test_epm_extraer_pagina_por_id_y_guarda_todas_las_filas(monkeypatch):
+    llamadas = []
+    guardado = {}
+
+    monkeypatch.setattr(epm_tarifas, "PAGINA", 2)
+    monkeypatch.setattr(epm_tarifas, "ya_existe", lambda nombre, forzar: False)
+
+    def fake_http_json(metodo, url, *, params):
+        llamadas.append(params.copy())
+        paginas = {
+            0: [{"id": "fila-1"}, {"id": "fila-2"}],
+            2: [{"id": "fila-3"}],
+        }
+        return paginas[params["$offset"]]
+
+    def fake_guardar_bronce(df, nombre, *, fuente, origen):
+        guardado["filas"] = df.to_dict("records")
+        guardado["nombre"] = nombre
+
+    monkeypatch.setattr(epm_tarifas, "http_json", fake_http_json)
+    monkeypatch.setattr(epm_tarifas, "guardar_bronce", fake_guardar_bronce)
+
+    epm_tarifas.extraer()
+
+    assert [llamada["$offset"] for llamada in llamadas] == [0, 2]
+    assert all(llamada["$order"] == ":id" for llamada in llamadas)
+    assert guardado["filas"] == [
+        {"id": "fila-1"},
+        {"id": "fila-2"},
+        {"id": "fila-3"},
+    ]
+    assert guardado["nombre"] == epm_tarifas.NOMBRE
+
+
+def test_epm_extraer_falla_si_no_hay_filas(monkeypatch):
+    monkeypatch.setattr(epm_tarifas, "ya_existe", lambda nombre, forzar: False)
+    monkeypatch.setattr(epm_tarifas, "http_json", lambda *args, **kwargs: [])
+    monkeypatch.setattr(
+        epm_tarifas,
+        "guardar_bronce",
+        lambda *args, **kwargs: pytest.fail("No debe guardar una respuesta vacía"),
+    )
+
+    with pytest.raises(ValueError, match="devolvió vacío"):
+        epm_tarifas.extraer()

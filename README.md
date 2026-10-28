@@ -83,6 +83,11 @@ observatorio-energia/
 
 Las muestras CSV están versionadas en `data/sample/` para inspección y uso de ejemplo. Los Parquet completos se generan localmente en `data/bronze/`, carpeta excluida de Git; para reconstruirlos desde cero basta con instalar `requirements.txt` y ejecutar `python -m src.pipeline`.
 
+Natalia Castro Ospino: Link al video
+
+## Capturas de evidencia
+Se incluyen capturas de la ejecución del pipeline y del resultado de las pruebas automáticas.
+
 ## 🤖 Uso de IA
 
 Se utilizó ChatGPT como herramienta de apoyo para analizar mensajes de error Y organizar tareas técnicas Las modificaciones se verificaron mediante comandos y ejecuciones en el entorno local.

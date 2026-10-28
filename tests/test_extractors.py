@@ -1,9 +1,9 @@
-import pytest
-import src.extract.epm_tarifas as epm_tarifas
-
 from datetime import date
 
+import pytest
+
 from src import config
+from src.extract import epm_tarifas
 from src.extract.xm import aplanar, extraer_metrica
 from src.utils import ventanas
 
@@ -63,6 +63,16 @@ def test_extraer_metrica_skips_existing_output(tmp_path, monkeypatch):
     monkeypatch.setattr("src.extract.xm.http_json", no_debe_hacer_peticion)
 
     extraer_metrica("MetricId", "Sistema", "daily", nombre, forzar=False)
+
+
+def test_epm_omite_extraccion_si_archivo_existe(monkeypatch):
+    def no_debe_consultar(*args, **kwargs):
+        raise AssertionError("No debe consultar la API si el archivo ya existe")
+
+    monkeypatch.setattr(epm_tarifas, "ya_existe", lambda nombre, forzar: True)
+    monkeypatch.setattr(epm_tarifas, "http_json", no_debe_consultar)
+
+    epm_tarifas.extraer(forzar=False)
 
 
 def test_epm_extraer_pagina_por_id_y_guarda_todas_las_filas(monkeypatch):

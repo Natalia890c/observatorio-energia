@@ -1,0 +1,8 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.1.1, pluggy-1.7.0
+rootdir: C:\Clases\observatorio-energia
+collected 7 items
+
+tests\test_extractors.py .......                                         [100%]
+
+============================== 7 passed in 6.06s ==============================

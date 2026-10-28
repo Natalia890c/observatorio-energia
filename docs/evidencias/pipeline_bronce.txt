@@ -1,0 +1,37 @@
+[02:12:44] Pipeline bronce | rango 2024-01-01 a 2026-09-30 | forzar=False
+[02:12:44] XM - API REST del mercado electrico
+[02:12:44]    = xm_precio_bolsa.parquet ya existe; se omite (use --forzar para repetir)
+[02:12:44]    = xm_demanda.parquet ya existe; se omite (use --forzar para repetir)
+[02:12:44]    = xm_embalses.parquet ya existe; se omite (use --forzar para repetir)
+[02:12:44]    = xm_generacion.parquet ya existe; se omite (use --forzar para repetir)
+[02:12:44]    = xm_aportes_energia.parquet ya existe; se omite (use --forzar para repetir)
+[02:12:44]    = xm_listado_recursos.parquet ya existe; se omite (use --forzar para repetir)
+[02:12:44] IDEAM - datos abiertos (SoQL)
+[02:12:44]    = ideam_precipitacion_diaria.parquet ya existe; se omite (use --forzar para repetir)
+[02:12:44]    = ideam_temperatura_diaria.parquet ya existe; se omite (use --forzar para repetir)
+[02:12:44] NOAA - indice ONI (El Nino)
+[02:12:44]    = noaa_oni.parquet ya existe; se omite (use --forzar para repetir)
+[02:12:44] EnerAndes - Excel interno
+[02:12:54]    = enerandes_ventas_2023.parquet ya existe; se omite (use --forzar para repetir)
+[02:12:54]    = enerandes_ventas_2024.parquet ya existe; se omite (use --forzar para repetir)
+[02:12:54]    = enerandes_ventas_2025.parquet ya existe; se omite (use --forzar para repetir)
+[02:12:54]    = enerandes_ventas_2026.parquet ya existe; se omite (use --forzar para repetir)
+[02:12:54] EPM - tarifas hist¾ricas de energÝa (datos.gov.co)
+[02:12:54]    = epm_tarifas_historicas.parquet ya existe; se omite (use --forzar para repetir)
+[02:12:54] Resumen de la capa bronce:
+   archivo                                filas  columnas      KB
+   enerandes_ventas_2023.parquet          1,114        10      32
+   enerandes_ventas_2024.parquet          1,114        11      34
+   enerandes_ventas_2025.parquet          1,117        10      33
+   enerandes_ventas_2026.parquet            839        10      26
+   epm_tarifas_historicas.parquet         3,623        15      60
+   ideam_precipitacion_diaria.parquet     2,784        11      18
+   ideam_temperatura_diaria.parquet      17,349        13     164
+   noaa_oni.parquet                         920         7       9
+   xm_aportes_energia.parquet             1,004         6      20
+   xm_demanda.parquet                     1,004        30     282
+   xm_embalses.parquet                    1,004         6      15
+   xm_generacion.parquet                350,345        30   43125
+   xm_listado_recursos.parquet            2,494        14      74
+   xm_precio_bolsa.parquet                1,004        30     260
+[02:12:57] Listo en 13 s

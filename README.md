@@ -83,7 +83,7 @@ observatorio-energia/
 
 Las muestras CSV están versionadas en `data/sample/` para inspección y uso de ejemplo. Los Parquet completos se generan localmente en `data/bronze/`, carpeta excluida de Git; para reconstruirlos desde cero basta con instalar `requirements.txt` y ejecutar `python -m src.pipeline`.
 
-Natalia Castro Ospino: Link al video
+Natalia Castro Ospino: [Link al video](https://drive.google.com/file/d/1t1kE_6Q2EJQ34p0MpEHuqUvkG6-gnkyC/view?usp=drivesdk)
 
 ## Capturas de evidencia
 Se incluyen capturas de la ejecución del pipeline y del resultado de las pruebas automáticas.

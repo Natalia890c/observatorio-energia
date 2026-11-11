@@ -36,6 +36,7 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 python -m src.pipeline          # descarga las fuentes a data/bronze/
 python -m src.pipeline --forzar # vuelve a descargar las fuentes
+python -m src.silver.enerandes  # limpia y une las ventas de EnerAndes 2023-2026
 python -m src.consultar         # consultas SQL de BI con DuckDB
 python -m pytest                # ejecuta las pruebas automáticas
 ```
@@ -46,6 +47,19 @@ El Excel de EnerAndes requerido por el pipeline está incluido en `data/insumos/
 Para volver a descargar todo: `python -m src.pipeline --forzar`. El rango de fechas se cambia en `src/config.py`.
 La precipitación y la temperatura del IDEAM se consultan desde el 1 de enero de 2025. Ambas se filtran por Antioquia y se agregan por estación y día directamente en SoQL; la temperatura incluye promedio, mínimo y máximo diarios.
 Para generar o actualizar únicamente estos dos archivos: `python -m src.extract.ideam --forzar`.
+
+### Limpieza de EnerAndes (capa plata)
+
+Después de extraer las cuatro hojas a `data/bronze/`, ejecute `python -m src.silver.enerandes`.
+El proceso detecta los encabezados aunque haya títulos o notas previas, estandariza las
+fechas mensuales de 2023-2026, convierte MWh a kWh y normaliza los municipios, segmentos
+y modalidades. Consolida las ventas en `data/silver/enerandes_ventas.parquet`.
+Las filas con datos requeridos ausentes, valores negativos, unidades o categorías no
+reconocidas, o claves duplicadas con medidas en conflicto quedan en
+`data/silver/enerandes_cuarentena.parquet`, con el motivo, número de fila y contenido
+original para su revisión. Los duplicados equivalentes se consolidan; un valor de
+facturación vacío se conserva como nulo porque no se puede inferir. El reporte de
+conteos se escribe en `docs/reporte_calidad.md`.
 
 El perfil de calidad de los archivos Parquet locales, con conteos de filas, tipos, nulos, duplicados, rangos temporales y hallazgos, está en [`docs/perfilamiento.md`](docs/perfilamiento.md).
 

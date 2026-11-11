@@ -95,6 +95,78 @@ def test_energia_negativa_va_a_cuarentena():
     assert cuarentena.iloc[0]["energia_kwh"] == -300
 
 
+def test_limpia_fechas_2024_y_convierte_mwh_a_kwh():
+    filas = [
+        ["PERIODO", "MUNICIPIO", "SEGMENTO CLIENTE", "MODALIDAD",
+         "ENERGIA", "UNIDAD", "VALOR ($)", "NUM CLIENTES"],
+        ["2024-03", "Bello", "Comercial", "Bolsa", "2.5", "MWh", "1000", "3"],
+        ["mar-24", "Itaguí", "IND", "CONTRATOS", "300", "kWh", "2000", "4"],
+        ["03/2024", "Rio Negro", "Residencial", "Contrato", "400", "kWh", "3000", "5"],
+    ]
+    bronce = pd.DataFrame(filas, columns=[f"col_{i}" for i in range(8)])
+
+    limpias, cuarentena, _ = limpiar(bronce, anio_fuente=2024)
+
+    assert len(cuarentena) == 0
+    assert limpias["periodo"].tolist() == ["2024-03"] * 3
+    assert limpias["energia_kwh"].tolist() == [2500.0, 300.0, 400.0]
+    assert limpias["municipio"].tolist() == ["Bello", "Itagüí", "Rionegro"]
+
+
+def test_interpreta_fecha_2026_como_dia_mes_anio_y_omite_titulos():
+    filas = [
+        ["EnerAndes - Reporte de ventas 2026", None, None, None, None, None, None],
+        ["Fuente: sistema comercial", None, None, None, None, None, None],
+        [None, None, None, None, None, None, None],
+        ["Fecha corte", "Ciudad", "Tipo cliente", "Compra", "kWh",
+         "Total facturado COP", "Clientes activos"],
+        ["01/03/2026", "Apartadó", "Industrial", "Bolsa", "1500", "2000", "4"],
+    ]
+    bronce = pd.DataFrame(filas, columns=[f"col_{i}" for i in range(7)])
+
+    limpias, cuarentena, metricas = limpiar(bronce, anio_fuente=2026)
+
+    assert len(cuarentena) == 0
+    assert limpias.loc[0, "periodo"] == "2026-03"
+    assert limpias.loc[0, "energia_kwh"] == 1500
+    assert metricas[0]["antes"] == 3
+
+
+def test_filas_no_corregibles_guardan_motivo_y_fila_original():
+    filas = [
+        ["Fecha", "Municipio", "Segmento", "Tipo_Compra", "Energia_kWh",
+         "Valor_COP", "Clientes"],
+        ["2023-01", "Municipio inventado", "Comercial", "Bolsa", "100", "200", "3"],
+        ["2023-02", "Bello", "Comercial", "Bolsa", None, "200", "3"],
+    ]
+    bronce = pd.DataFrame(filas, columns=[f"col_{i}" for i in range(7)])
+
+    limpias, cuarentena, _ = limpiar(bronce, anio_fuente=2023)
+
+    assert limpias.empty
+    assert len(cuarentena) == 2
+    assert cuarentena["fila_excel"].tolist() == [2, 3]
+    assert "Municipio" in cuarentena.iloc[0]["motivo"]
+    assert "Energía vacía" in cuarentena.iloc[1]["motivo"]
+    assert all(cuarentena["registro_original"].str.len() > 0)
+
+
+def test_todos_los_valores_negativos_van_a_cuarentena():
+    filas = [
+        ["Fecha", "Municipio", "Segmento", "Tipo_Compra", "Energia_kWh",
+         "Valor_COP", "Clientes"],
+        ["2023-01", "Bello", "Comercial", "Bolsa", "100", "-200", "-3"],
+    ]
+    bronce = pd.DataFrame(filas, columns=[f"col_{i}" for i in range(7)])
+
+    limpias, cuarentena, _ = limpiar(bronce, anio_fuente=2023)
+
+    assert limpias.empty
+    assert len(cuarentena) == 1
+    assert "Valor facturado negativo" in cuarentena.iloc[0]["motivo"]
+    assert "Clientes negativos" in cuarentena.iloc[0]["motivo"]
+
+
 def test_pandera_rechaza_un_tipo_de_compra_invalido():
     limpias, _, _ = limpiar(hoja_de_ejemplo())
     # .loc[0, "tipo_compra"] es la celda de la fila 0, columna tipo_compra;

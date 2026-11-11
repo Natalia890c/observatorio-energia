@@ -105,3 +105,77 @@ Se incluyen capturas de la ejecución del pipeline y del resultado de las prueba
 ## 🤖 Uso de IA
 
 Se utilizó ChatGPT como herramienta de apoyo para analizar mensajes de error Y organizar tareas técnicas Las modificaciones se verificaron mediante comandos y ejecuciones en el entorno local.
+
+## Consultas analíticas – Capa Gold
+
+Las consultas SQL se encuentran en `consultas/oro/` y utilizan los modelos dimensionales construidos con dbt y DuckDB.
+
+### 1. Precio de bolsa y demanda mensual
+
+Archivo: `consultas/oro/01_precio_demanda_mensual.sql`
+
+Calcula el precio promedio de bolsa, la demanda promedio y la cantidad de observaciones por mes.
+
+**Resultados observados:**
+
+| Mes | Precio promedio | Demanda promedio | Registros |
+|---|---:|---:|---:|
+| Enero 2024 | 558,72 | 9.202.503,60 | 744 |
+| Febrero 2024 | 568,71 | 9.307.901,93 | 696 |
+| Marzo 2024 | 622,77 | 9.500.107,29 | 744 |
+| Abril 2024 | 748,66 | 9.372.401,31 | 720 |
+| Mayo 2024 | 291,55 | 9.243.697,64 | 744 |
+
+En los primeros cinco meses de 2024 se observa variabilidad en el precio promedio de bolsa, mientras que la demanda promedio presenta valores relativamente cercanos.
+
+### 2. Generación eléctrica por fuente de energía
+
+Archivo: `consultas/oro/02_generacion_por_fuente.sql`
+
+Agrupa la generación por fuente energética y calcula la generación acumulada y el número de registros.
+
+**Principales resultados:**
+
+| Fuente | Generación acumulada |
+|---|---:|
+| AGUA | 170.122.100.000 aprox. |
+| GAS | 25.837.730.000 aprox. |
+| CARBON | 18.457.590.000 aprox. |
+| RAD SOLAR | 13.000.320.000 aprox. |
+| BAGAZO | 2.435.259.000 aprox. |
+
+AGUA presenta la mayor generación acumulada en los datos consultados, seguida de GAS y CARBON. Los registros sin clasificación se conservan bajo la categoría «Sin clasificar».
+
+### 3. Ventas por municipio, segmento y tipo de compra
+
+Archivo: `consultas/oro/03_ventas_municipio_segmento.sql`
+
+Agrupa la energía comercializada, el valor económico y los clientes reportados por municipio, segmento y modalidad de compra.
+
+**Principales resultados:**
+
+| Municipio | Segmento ID | Tipo de compra | Energía (kWh) | Valor (COP) |
+|---|---:|---|---:|---:|
+| 05001 | 4 | Contrato | 418.620.429 | 412.895.700.000 aprox. |
+| 05001 | 2 | Contrato | 318.309.694 | 295.443.000.000 aprox. |
+| 05001 | 1 | Contrato | 228.546.894 | 260.690.800.000 aprox. |
+| 05001 | 4 | Bolsa | 117.494.391 | 116.368.900.000 aprox. |
+| 05088 | 4 | Contrato | 105.056.354 | 103.984.200.000 aprox. |
+
+El municipio 05001 concentra los primeros cuatro resultados del listado ordenado por valor económico. Los clientes corresponden a cantidades reportadas y acumuladas, no necesariamente a personas únicas.
+
+### Ejecución de consultas
+
+Las consultas se ejecutan sobre la base DuckDB generada por dbt en `data/observatorio.duckdb`. Primero se construye la capa Gold:
+
+```powershell
+dbt build --project-dir dbt --profiles-dir dbt
+```
+
+Posteriormente se pueden ejecutar los archivos SQL desde DuckDB.
+
+### Documentación del modelo
+
+- [Modelo dimensional](docs/modelo_dimensional.md).
+- [Diccionario de datos](docs/diccionario_datos.md).
+- [Reporte de calidad](docs/reporte_calidad.md).

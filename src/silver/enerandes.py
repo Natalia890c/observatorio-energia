@@ -206,6 +206,9 @@ def limpiar(
 
     medir("Títulos y notas antes del encabezado", "Ignorarlos como filas de datos",
           indice_encabezado, 0)
+    
+    medir("Fila de encabezado", "Utilizarla para identificar las columnas; no cargarla como dato",
+      1, 0)
 
     ventas: list[dict] = []
     cuarentena: list[dict] = []

@@ -86,3 +86,63 @@ Estos puntos permanecerán como pendientes hasta que tengamos evidencias concret
 Mi contribución se ha enfocado en ampliar la configuración de las extracciones de XM, incorporar el catálogo de recursos y documentar la evolución del proyecto. Los commits registrados permiten identificar estas actividades y vincularlas con cambios específicos en el repositorio.
 
 El siguiente paso es validar la ejecución completa del pipeline y consolidar las evidencias técnicas y académicas necesarias para la entrega final.
+## 8. Avances individuales EA2 – 11 de noviembre de 2026
+
+### 8.1. Transformaciones de la capa Silver
+
+Se desarrollaron módulos de limpieza para ampliar las fuentes del proyecto:
+
+- `src/silver/xm.py`: transformación de las métricas horarias, diarias y catálogo de recursos de XM.
+- `src/silver/ideam.py`: limpieza y validación de precipitación y temperatura.
+- `src/silver/noaa.py`: conversión del índice ONI a observaciones mensuales y clasificación de las fases ENSO.
+- `src/silver/epm.py`: limpieza de tarifas históricas, eliminación de duplicados exactos y separación de registros incompletos en cuarentena.
+
+También se ajustó `src/silver/enerandes.py` para ampliar las métricas de calidad del encabezado y se actualizó el reporte correspondiente.
+
+### 8.2. Resultados de las transformaciones
+
+| Fuente | Registros Silver | Resultado |
+|---|---:|---|
+| EnerAndes | 4.007 | 45 en cuarentena |
+| XM precio de bolsa | 24.096 | Transformación horaria |
+| XM demanda | 24.096 | Transformación horaria |
+| XM generación | 5.935.362 | Vacíos horarios excluidos |
+| XM embalses | 1.004 | Validación diaria |
+| XM aportes | 1.004 | Validación diaria |
+| XM catálogo | 2.492 | 2 duplicados exactos eliminados |
+| IDEAM precipitación | 2.784 | Registros conservados |
+| IDEAM temperatura | 17.349 | Registros conservados |
+| NOAA ONI | 920 | Clasificación ENSO |
+| EPM | 3.612 | 1 registro en cuarentena y 10 duplicados eliminados |
+
+En EPM se conservaron los valores negativos del concepto «Restricciones: Rm», al no existir evidencia suficiente para considerarlos errores.
+
+### 8.3. Pruebas automatizadas
+
+Se creó `tests/test_fuentes_silver.py` con siete pruebas nuevas para las transformaciones de XM, IDEAM, NOAA y EPM.
+
+Resultado de ejecución:
+
+- Pruebas anteriores: 17 aprobadas.
+- Pruebas nuevas: 7 aprobadas.
+- Total: 24 pruebas aprobadas.
+- Errores: 0.
+
+Comando ejecutado: `python -m pytest -q`.
+
+### 8.4. Documentación actualizada
+
+Se amplió `docs/reporte_calidad.md` con métricas de transformación, duplicados, observaciones vacías, clasificación ENSO y registros en cuarentena de las fuentes XM, IDEAM, NOAA y EPM.
+
+### 8.5. Actividades pendientes de cierre
+
+1. Completar los esquemas Pandera de todas las fuentes Silver.
+2. Ejecutar y verificar el pipeline integral reproducible.
+3. Completar el modelo dimensional Gold y sus pruebas dbt.
+4. Completar el diccionario de datos, diagrama y consultas SQL.
+5. Verificar que el reporte de calidad cumpla las reglas y métricas exigidas por la rúbrica.
+6. Registrar los cambios en commits individuales, realizar push y crear el pull request para revisión del compañero.
+7. Verificar el tag `ea2` y preparar el ZIP de entrega.
+
+Los resultados anteriores corresponden a ejecuciones locales y todavía deben verificarse en el pipeline integral.
+

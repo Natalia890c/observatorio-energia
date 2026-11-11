@@ -8,7 +8,7 @@ Este documento describe las columnas de los modelos dimensionales y de hechos im
 |---|---|---|---|
 | mes_id | INTEGER | Identificador del mes AAAAMM | EnerAndes |
 | municipio_id | VARCHAR | Código DIVIPOLA | EnerAndes |
-| segmento_id | INTEGER | Identificador del segmento | dim_segmento |
+| segmento_id | BIGINT | Identificador del segmento | dim_segmento |
 | tipo_compra | VARCHAR | Modalidad de compra: Bolsa o Contrato | EnerAndes |
 | energia_kwh | DOUBLE | Energía comercializada en kWh | EnerAndes |
 | valor_cop | DOUBLE | Valor económico en pesos colombianos | EnerAndes |
@@ -96,3 +96,4 @@ Este documento describe las columnas de los modelos dimensionales y de hechos im
 ## 10. Consideraciones
 
 Los tipos de datos se expresan según los valores y transformaciones de los modelos SQL. Las columnas derivadas se calculan durante la construcción de la capa Gold. Los campos descriptivos de recursos pueden ser nulos cuando un código histórico no aparece en el catálogo actual.
+

@@ -74,3 +74,17 @@ Registra la generación eléctrica por recurso, fecha y hora. Se relaciona con e
 ## 7. Validación
 
 La ejecución de dbt build construyó nueve modelos y ejecutó 29 pruebas de calidad. Resultado registrado: 39 ejecuciones aprobadas, cero errores y cero advertencias.
+
+## 8. Estado de implementación de las relaciones
+
+| Relación | Tipo | Estado |
+|---|---|---|
+| fact_ventas_mensual.mes_id → dim_mes.mes_id | Clave foránea | Implementada y probada |
+| fact_ventas_mensual.municipio_id → dim_municipio.municipio_id | Clave foránea | Implementada y probada |
+| fact_ventas_mensual.segmento_id → dim_segmento.segmento_id | Clave foránea | Implementada y probada |
+| fact_generacion_recurso.codigo_recurso → dim_recurso.codigo_recurso | Clave foránea | Implementada y probada |
+| fact_mercado_horario.fecha → dim_fecha.fecha | Relación lógica | Pendiente de implementar |
+| fact_generacion_recurso.fecha → dim_fecha.fecha | Relación lógica | Pendiente de implementar |
+| dim_recurso.fuente_energia → dim_fuente_energia.fuente_energia | Relación lógica | Pendiente de implementar |
+
+Las relaciones lógicas permiten identificar las asociaciones dimensionales previstas, pero no deben interpretarse como restricciones de integridad referencial implementadas en dbt.

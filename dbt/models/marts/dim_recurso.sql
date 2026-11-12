@@ -1,9 +1,9 @@
 {{ config(materialized='table') }}
 
 with codigos as (
-    select codigo_recurso
+    select "Code" as codigo_recurso
     from {{ source('plata', 'xm_listado_recursos') }}
-    where codigo_recurso is not null
+    where "Code" is not null
 
     union
 
@@ -13,17 +13,17 @@ with codigos as (
 ),
 catalogo as (
     select
-        codigo_recurso,
-        max(nombre_recurso) as nombre_recurso,
-        max(tipo_recurso) as tipo_recurso,
-        max(tipo_despacho) as tipo_despacho,
-        max(tipo_recurso_operativo) as tipo_recurso_operativo,
-        max(codigo_empresa) as codigo_empresa,
-        max(fuente_energia) as fuente_energia,
-        max(estado) as estado
+        "Code" as codigo_recurso,
+        max("Name") as nombre_recurso,
+        max("Type") as tipo_recurso,
+        max("Disp") as tipo_despacho,
+        max("RecType") as tipo_recurso_operativo,
+        max("CompanyCode") as codigo_empresa,
+        max("EnerSource") as fuente_energia,
+        max("State") as estado
     from {{ source('plata', 'xm_listado_recursos') }}
-    where codigo_recurso is not null
-    group by codigo_recurso
+    where "Code" is not null
+    group by "Code"
 )
 select
     c.codigo_recurso,
@@ -32,7 +32,7 @@ select
     r.tipo_despacho,
     r.tipo_recurso_operativo,
     r.codigo_empresa,
-    r.fuente_energia,
+    coalesce(r.fuente_energia, 'No informado') as fuente_energia,
     r.estado
 from codigos c
 left join catalogo r

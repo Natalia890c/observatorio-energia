@@ -5,7 +5,7 @@
 - **Actividad**: Desarrollo y validación de la capa plata para EnerAndes y las demás fuentes.
 - **Integrante**: Oscar Márquez Arrieta.
 - **Rol principal**: Data Quality Analyst / BI Analyst.
-- **Periodo registrado**: 10 de noviembre de 2026.
+- **Periodo registrado**: 10 y 11 de noviembre de 2026.
 - **Evidencia**: comandos ejecutados en el entorno local y archivos generados en `data/silver/`.
 
 ## 2. Objetivo
@@ -25,17 +25,17 @@ Los registros con energía vacía o negativa y otros datos no corregibles se con
 - 45 filas en `data/silver/enerandes_cuarentena.parquet`.
 - La tabla limpia pasó la validación de Pandera.
 - Se actualizaron `docs/reporte_calidad.md` y las instrucciones de ejecución en `README.md`.
-- Las 17 pruebas de pytest pasaron; `dbt build` completó 18 de 18 modelos y pruebas.
+- En la primera etapa, las 17 pruebas de pytest pasaron; `dbt build` completó 18 de 18 modelos y pruebas.
 
 ### 3.2. Conversión de las series horarias de XM
-Se preparó `src/silver/xm.py` con la función `pasar_a_horario`, que transforma las columnas `Hour01` a `Hour24` en registros por hora, convierte los valores a formato numérico y conserva como nulos las celdas vacías.
+Se preparó `src/silver/xm.py` con la función `pasar_a_horario`, que transforma las columnas `Hour01` a `Hour24` en registros por hora y convierte los valores a formato numérico. El limpiador actual excluye las celdas vacías, sin convertirlas en cero.
 
-Se generaron las siguientes tablas:
+En los Parquet generados anteriormente quedaron estas cantidades:
 - `xm_precio_bolsa.parquet`: 24.096 filas.
 - `xm_demanda.parquet`: 24.096 filas.
 - `xm_generacion.parquet`: 8.408.664 filas; se conservaron 2.473.215 valores faltantes como nulos, no como ceros.
 
-La generación se procesó por bloques. En Windows, el archivo temporal quedó bloqueado al intentar renombrarlo mientras DuckDB lo leía; se validó el temporal, se cerró la conexión y luego se movió al nombre definitivo.
+La generación se procesó por bloques. En Windows, el archivo temporal quedó bloqueado al intentar renombrarlo mientras DuckDB lo leía; se validó el temporal, se cerró la conexión y luego se movió al nombre definitivo. Al volver a ejecutar el limpiador actual, generación produce 5.935.449 filas porque deja por fuera las 2.473.215 horas vacías. La diferencia se explica en el reporte de calidad.
 
 ### 3.3. Limpieza de otras tablas de XM
 Se normalizaron las fechas y valores de embalses y aportes, conservando las columnas de linaje:
@@ -44,27 +44,71 @@ Se normalizaron las fechas y valores de embalses y aportes, conservando las colu
 
 En ambos archivos los valores se mantuvieron en la unidad original de XM.
 
-Para el catálogo de recursos se eliminaron duplicados exactos. Las dos filas con código `PRG1` y nombres distintos se separaron para revisión:
+En el catálogo guardado se eliminaron duplicados exactos. Las dos filas con código `PRG1` y nombres distintos se separaron manualmente para revisión:
 - `xm_listado_recursos.parquet`: 2.508 recursos con códigos únicos.
 - `xm_listado_recursos_cuarentena.parquet`: 2 filas.
+
+El limpiador actual detecta ese conflicto, pero se detiene con un error en vez de crear la cuarentena; esto también quedó anotado en el reporte.
 
 ### 3.4. Limpieza de IDEAM
 Se tiparon las fechas y las medidas numéricas, manteniendo el código y nombre de estación, el municipio y el linaje:
 - `ideam_precipitacion_diaria.parquet`: 29.804 filas.
 - `ideam_temperatura_diaria.parquet`: 17.349 filas.
 
-La revisión previa no encontró fechas inválidas, mediciones vacías o no numéricas, valores negativos ni duplicados por estación y fecha.
+La revisión previa no encontró fechas inválidas, mediciones vacías o no numéricas, valores negativos ni duplicados por estación y fecha. El limpiador actual convierte latitud y longitud a números; los Parquet guardados aún tienen esas dos columnas como texto.
 
 ### 3.5. Limpieza de NOAA
 Se transformó el ONI de temporadas trimestrales móviles a una fila mensual, asignando cada temporada a su mes central en el año indicado por NOAA (por ejemplo, `DJF` a enero). Se utilizó `ANOM` como valor del ONI y se asignó la fase con los umbrales solicitados: El Niño para valores mayores o iguales a 0,5; La Niña para valores menores o iguales a -0,5; Neutral en los demás casos.
 
-Resultado: `noaa_oni.parquet`, con 921 filas mensuales desde enero de 1950 hasta septiembre de 2026. Se verificó que las fechas fueran únicas y que las fases correspondieran a los umbrales.
+Resultado: `noaa_oni.parquet`, con 921 filas mensuales desde enero de 1950 hasta septiembre de 2026. Se verificó que las fechas fueran únicas y que las fases correspondieran a los umbrales. El limpiador actual usa nombres de columnas distintos a los del Parquet guardado; la diferencia está descrita en el reporte.
 
 ### 3.6. Limpieza de la fuente propia EPM
 Se normalizaron los años, meses y valores tarifarios. Se consolidaron 10 duplicados exactos y se conservaron los valores negativos asociados a `Restricciones: Rm`, sin asumir que fueran errores. La fila sin dimensiones, periodo y valores tarifarios interpretables se envió a cuarentena.
 
 - `epm_tarifas_historicas.parquet`: 3.612 filas.
 - `epm_tarifas_historicas_cuarentena.parquet`: 1 fila.
+
+### 3.7. Reglas de calidad y pruebas para las fuentes
+Se agregaron esquemas de Pandera para las tablas de XM, IDEAM, NOAA y EPM en
+`src/quality/esquemas.py`. Los limpiadores revisan, por ejemplo, que las fechas
+y los números se puedan leer, que no falten campos obligatorios, que las horas
+estén entre 1 y 24 y que las temperaturas sean coherentes. Las ventas de
+EnerAndes también se validan antes de guardarse.
+
+Se amplió `docs/reporte_calidad.md` para explicar, con palabras sencillas, los
+problemas encontrados, las reglas aplicadas, los conteos antes y después y las
+filas enviadas a cuarentena. El reporte contiene 16 reglas para XM, IDEAM,
+NOAA y EPM, y 17 para EnerAndes. Se añadió una prueba automática que comprueba
+que cada fuente tenga por lo menos 15 reglas.
+
+**Comprobación:** al finalizar estos cambios, `python -m pytest -v` ejecutó 26
+pruebas y todas pasaron.
+
+También se compararon los limpiadores actuales con los Parquet ya guardados.
+Se encontraron diferencias que quedaron anotadas en el reporte; por ejemplo,
+el archivo guardado de generación XM conserva los valores vacíos como nulos,
+pero el limpiador actual los excluye. Por esto, no se afirma que todos los
+Parquet guardados se hayan vuelto a generar con las validaciones nuevas.
+
+### 3.8. Relaciones entre hechos y dimensiones
+Se completaron en dbt las relaciones que faltaban: la fecha de mercado y la
+fecha de generación deben existir en la dimensión de fechas; y la fuente de
+energía de cada recurso debe existir en su dimensión. También se conectó el
+hecho de generación con la dimensión de recursos. Los recursos sin fuente
+conocida se etiquetan como "No informado" para no perder sus registros.
+
+Al probar el modelo, se vio que algunas horas de generación estaban vacías.
+El hecho de Gold ahora deja esas filas fuera; así no se cuentan como generación
+cero. `dbt build --project-dir dbt --profiles-dir dbt` terminó correctamente:
+pasaron las 43 ejecuciones (10 modelos y 33 pruebas), incluidas las tres
+relaciones añadidas.
+
+Después se completó la revisión de las llaves. Se añadieron pruebas para
+comprobar que la fecha del calendario no se repita y que las claves compuestas
+de ventas, mercado horario y generación sean únicas. Las dimensiones también
+comprueban sus llaves con `unique` y `not_null`, y las relaciones con `relationships`.
+La nueva ejecución de `dbt build --project-dir dbt --profiles-dir dbt` pasó las
+47 ejecuciones: 10 modelos y 37 pruebas, sin errores ni advertencias.
 
 ## 4. Decisiones técnicas y aprendizajes
 - Los espacios en generación se trataron como datos faltantes, no como ceros, porque el origen no permite afirmar que representen generación igual a cero.
@@ -75,16 +119,16 @@ Se normalizaron los años, meses y valores tarifarios. Se consolidaron 10 duplic
 
 ## 5. Verificaciones realizadas
 
-Se verificaron los conteos de filas de los diez archivos principales de plata, el rango de horas de las tablas horarias, la unicidad de códigos en el catálogo, las fases del ONI y los conteos de las dos cuarentenas verificadas. Los resultados coincidieron con los conteos esperados.
+Se verificaron los conteos de filas de los archivos principales de plata, el rango de horas de las tablas horarias, la unicidad de códigos del catálogo guardado, las fases del ONI y los conteos de las cuarentenas disponibles.
 
-También se ejecutaron las pruebas automatizadas de EnerAndes y la construcción de dbt durante la actividad de limpieza de esa fuente. Las transformaciones de las demás fuentes se ejecutaron mediante comandos manuales en PowerShell y se verificaron sobre los Parquet resultantes.
+También se ejecutaron las pruebas automatizadas de las limpiezas, esquemas y documentación. La ejecución final de `python -m pytest -v` pasó **26 de 26 pruebas**. La construcción de dbt completó 18 de 18 modelos y pruebas durante la actividad inicial de EnerAndes.
 
 ## 6. Alcance y trabajo pendiente
 
-Los Parquet de plata quedaron generados y verificados en el entorno local. Sin embargo, salvo la función de conversión horaria en `src/silver/xm.py` y el proceso de EnerAndes, las transformaciones de las demás fuentes se ejecutaron manualmente; aún no están integradas en un único comando reproducible del pipeline.
+Los archivos de plata y sus validaciones no se actualizan todos juntos con un solo comando. Al comparar los archivos guardados con los limpiadores actuales se encontraron diferencias, descritas en `docs/reporte_calidad.md`. Por ejemplo, hay tipos distintos en las coordenadas IDEAM guardadas y el catálogo XM actual detiene el proceso ante códigos con nombres en conflicto, aunque ya existe un archivo manual de cuarentena para esos casos.
 
-Como siguiente mejora, se puede organizar cada limpieza de fuente en módulos de `src/silver/`, agregar pruebas específicas y documentar o automatizar la generación de las tablas de plata. Los archivos de bronce se conservaron sin modificar.
+Como siguiente mejora, se puede automatizar la generación de todos los archivos de plata con un solo comando y actualizar las cuarentenas desde los limpiadores. Los archivos de bronce se conservaron sin modificar.
 
 ## 7. Conclusión
 
-El trabajo dejó preparadas y validadas las principales fuentes de la capa plata: ventas de EnerAndes, series horarias y diarias de XM, catálogo de recursos, observaciones de IDEAM, ONI mensual de NOAA y tarifas históricas de EPM. Se conservaron explícitamente los valores faltantes y se separaron los registros conflictivos identificados para revisión, evitando corregir datos por suposición.
+El trabajo dejó documentadas las limpiezas de las principales fuentes de plata y agregó reglas automáticas para detectar datos con problemas. Se conservaron los valores que no se pueden interpretar sin inventar datos y se registraron los casos que requieren revisión. Las diferencias entre los archivos guardados y los limpiadores actuales también quedaron señaladas para corregirlas más adelante.

@@ -1,11 +1,11 @@
 {{ config(materialized='table') }}
 
 with precio as (
-    select "Date"::date as fecha, hora, valor as precio_bolsa
+    select fecha::date as fecha, hora, valor as precio_bolsa
     from {{ source('plata', 'xm_precio_bolsa') }}
 ),
 demanda as (
-    select "Date"::date as fecha, hora, valor as demanda_mwh
+    select fecha::date as fecha, hora, valor as demanda_mwh
     from {{ source('plata', 'xm_demanda') }}
 )
 select

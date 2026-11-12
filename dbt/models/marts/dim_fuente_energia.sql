@@ -1,6 +1,10 @@
 {{ config(materialized='table') }}
 
 select distinct
-    fuente_energia
+    "EnerSource" as fuente_energia
 from {{ source('plata', 'xm_listado_recursos') }}
-where fuente_energia is not null
+where "EnerSource" is not null
+
+union
+
+select 'No informado' as fuente_energia

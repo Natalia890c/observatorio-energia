@@ -63,9 +63,36 @@ conteos se escribe en `docs/reporte_calidad.md`.
 
 El perfil de calidad de los archivos Parquet locales, con conteos de filas, tipos, nulos, duplicados, rangos temporales y hallazgos, está en [`docs/perfilamiento.md`](docs/perfilamiento.md).
 
+### Calidad de las fuentes en capa plata
+
+Las reglas de validación están definidas en `src/quality/esquemas.py`. Los
+limpiadores de XM, IDEAM, NOAA y EPM las usan para revisar tipos de datos,
+campos obligatorios, valores permitidos y consistencia. EnerAndes también valida
+su tabla antes de guardarla.
+
+El informe [`docs/reporte_calidad.md`](docs/reporte_calidad.md) explica los
+problemas encontrados, las reglas aplicadas, las cantidades antes y después y
+los registros que quedaron en cuarentena. Incluye al menos 15 reglas para cada
+fuente. En Gold, dbt también comprueba que las fechas de los hechos existan en
+la dimensión de fechas, que cada recurso tenga una fuente de energía válida y
+que las llaves primarias y los granos de las tablas de hechos no se repitan.
+Para comprobar el proyecto, ejecute `python -m pytest -v` y
+`dbt build --project-dir dbt --profiles-dir dbt`.
+
+**Nota:** los archivos de plata guardados y algunos limpiadores actuales todavía
+tienen diferencias; por ejemplo, el archivo de generación XM conserva valores
+vacíos como nulos, mientras que el limpiador actual excluye esas observaciones.
+El informe detalla los casos identificados. Por eso, los Parquet existentes no
+deben asumirse como regenerados automáticamente por las validaciones recientes.
+
 ### Fuente propia: tarifas históricas de EPM
 
 Se incorpora el dataset [Histórico de Tarifas de Energía Eléctrica – EPM (2016-2021)](https://www.datos.gov.co/d/sfcd-b3ey), publicado por Empresas Públicas de Medellín en datos.gov.co. Contiene tarifas del mercado regulado según año, mes, nivel, tipo de tarifa y modalidad de consumo. Se usará como referencia histórica para contextualizar los costos de energía en Antioquia frente a los precios de XM y las ventas de EnerAndes. Su cobertura publicada llega hasta 2021, por lo que no representa tarifas vigentes para el periodo de análisis de 2024-2026. El extractor guarda las filas recibidas sin limpiarlas ni transformarlas.
+
+Para la limpieza de EPM en plata se convierten los años, meses y tarifas a tipos
+adecuados, se quitan las filas repetidas y se envían a cuarentena las filas
+incompletas o inválidas. Los valores negativos de restricciones se conservan
+porque no se deben cambiar sin evidencia de que sean errores.
 
 ## 🏗️ Arquitectura
 

@@ -25,13 +25,20 @@ models:
       - name: fecha_id
         data_tests: [unique, not_null]
       - name: fecha
-        data_tests: [not_null]
+        data_tests: [unique, not_null]
 
   - name: dim_recurso
     description: "Catálogo de recursos de generación eléctrica."
     columns:
       - name: codigo_recurso
         data_tests: [unique, not_null]
+      - name: fuente_energia
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fuente_energia')
+                field: fuente_energia
 
   - name: dim_fuente_energia
     description: "Catálogo de fuentes de energía."
@@ -41,6 +48,14 @@ models:
 
   - name: fact_ventas_mensual
     description: "Ventas de energía por mes, municipio, segmento y tipo de compra."
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - mes_id
+              - municipio_id
+              - segmento_id
+              - tipo_compra
     columns:
       - name: mes_id
         data_tests:
@@ -71,9 +86,18 @@ models:
 
   - name: fact_mercado_horario
     description: "Precio de bolsa y demanda del sistema por fecha y hora."
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [fecha, hora]
     columns:
       - name: fecha
-        data_tests: [not_null]
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha
       - name: hora
         data_tests: [not_null]
       - name: precio_bolsa
@@ -83,9 +107,18 @@ models:
 
   - name: fact_generacion_recurso
     description: "Generación eléctrica por recurso, fecha y hora."
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [fecha, hora, codigo_recurso]
     columns:
       - name: fecha
-        data_tests: [not_null]
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha
       - name: hora
         data_tests: [not_null]
       - name: codigo_recurso

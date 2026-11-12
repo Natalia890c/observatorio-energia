@@ -3,6 +3,8 @@
 
 import pandas as pd
 
+from src.quality.esquemas import ESQUEMA_NOAA_ONI
+
 LINAJE = ["_fuente", "_origen", "_extraido_en"]
 
 MESES_CENTRALES = {
@@ -58,10 +60,11 @@ def limpiar_oni(bronce: pd.DataFrame) -> pd.DataFrame:
         "ANOM": "anomalia_oni",
     })
 
-    return resultado[
+    resultado = resultado[
         [
             "fecha", "anio", "mes", "temporada",
             "temperatura_oceanica_total", "anomalia_oni",
             "fase_enso", *LINAJE,
         ]
     ].reset_index(drop=True)
+    return ESQUEMA_NOAA_ONI.validate(resultado, lazy=True)

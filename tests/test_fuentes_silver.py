@@ -2,6 +2,7 @@
 import pandas as pd
 
 from src.silver.xm import pasar_a_horario, limpiar_diaria
+from src.silver.xm import limpiar_catalogo
 from src.silver.ideam import limpiar_precipitacion, limpiar_temperatura
 from src.silver.noaa import limpiar_oni
 from src.silver.epm import limpiar_epm
@@ -38,6 +39,29 @@ def test_xm_diario_convierte_valor_a_numerico():
     resultado = limpiar_diaria(df)
     assert len(resultado) == 1
     assert resultado["Value"].iloc[0] == 12.5
+
+
+def test_xm_catalogo_valida_campos_y_codigo_unico():
+    df = pd.DataFrame([{
+        "Date": "2026-11-10",
+        "Id": "Sistema",
+        "Code": "R001",
+        "Name": "Recurso de prueba",
+        "Type": "HIDRAULICA",
+        "Disp": "DESPACHADO CENTRALMENTE",
+        "RecType": "NORMAL",
+        "CompanyCode": "EMPR",
+        "EnerSource": "AGUA",
+        "OperStartdate": "2020-01-01",
+        "State": "OPERACION",
+        **linaje(),
+    }])
+
+    resultado = limpiar_catalogo(df)
+
+    assert len(resultado) == 1
+    assert resultado.loc[0, "codigo_recurso"] == "R001"
+    assert pd.api.types.is_datetime64_any_dtype(resultado["fecha_catalogo"])
 
 
 def test_ideam_precipitacion_convierte_campos_numericos():

@@ -3,6 +3,8 @@
 
 import pandas as pd
 
+from src.quality.esquemas import ESQUEMA_EPM_TARIFAS
+
 LINAJE = ["_fuente", "_origen", "_extraido_en"]
 
 MESES = {
@@ -68,12 +70,15 @@ def limpiar_epm(bronce: pd.DataFrame):
 
     limpias["year"] = limpias["year"].astype("int16")
     limpias["mes_numero"] = limpias["mes_numero"].astype("int8")
+    limpias["mes_nombre"] = limpias["mes_nombre"].str.capitalize()
+    limpias[NUMERICAS] = limpias[NUMERICAS].astype("float64")
 
     limpias = limpias.drop(columns=["mes"])
     limpias = limpias.rename(columns={"mes_numero": "mes"})
 
     limpias = limpias.reset_index(drop=True)
     cuarentena = cuarentena.reset_index(drop=True)
+    limpias = ESQUEMA_EPM_TARIFAS.validate(limpias, lazy=True)
 
     print(f"Bronze: {antes:,}")
     print(f"Duplicados exactos eliminados: {duplicados:,}")

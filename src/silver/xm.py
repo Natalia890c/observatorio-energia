@@ -1,5 +1,11 @@
 import pandas as pd
 
+from src.quality.esquemas import (
+    ESQUEMA_XM_CATALOGO,
+    ESQUEMA_XM_DIARIA,
+    ESQUEMA_XM_HORARIA,
+)
+
 LINAJE = ["_fuente", "_origen", "_extraido_en"]
 HORAS = [f"Hour{i:02d}" for i in range(1, 25)]
 
@@ -90,7 +96,7 @@ def pasar_a_horario(bronce: pd.DataFrame) -> pd.DataFrame:
     validos = ~vacios
     largo = largo.loc[validos].copy()
     largo["Date"] = fechas.loc[validos]
-    largo["valor"] = valores.loc[validos]
+    largo["valor"] = valores.loc[validos].astype("float64")
 
     largo["hora"] = (
         largo["_hora_origen"]
@@ -98,7 +104,9 @@ def pasar_a_horario(bronce: pd.DataFrame) -> pd.DataFrame:
         .astype("int8")
     )
 
-    return largo.drop(columns="_hora_origen").reset_index(drop=True)
+    resultado = largo.drop(columns="_hora_origen").reset_index(drop=True)
+    ESQUEMA_XM_HORARIA.validate(resultado, lazy=True)
+    return resultado
 
 
 def limpiar_diaria(bronce: pd.DataFrame) -> pd.DataFrame:
@@ -115,8 +123,9 @@ def limpiar_diaria(bronce: pd.DataFrame) -> pd.DataFrame:
     resultado["Value"] = _validar_numericos(
         resultado["Value"],
         "Value",
-    )
+    ).astype("float64")
 
+    ESQUEMA_XM_DIARIA.validate(resultado, lazy=True)
     return resultado
 
 
@@ -196,4 +205,6 @@ def limpiar_catalogo(bronce: pd.DataFrame) -> pd.DataFrame:
             f"Códigos de recurso con información contradictoria: {codigos[:10]}"
         )
 
-    return resultado.reset_index(drop=True)
+    resultado = resultado.reset_index(drop=True)
+    ESQUEMA_XM_CATALOGO.validate(resultado, lazy=True)
+    return resultado

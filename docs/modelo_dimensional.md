@@ -40,21 +40,24 @@ erDiagram
     DIM_FUENTE_ENERGIA ||--o{ DIM_RECURSO : fuente_energia
 ```
 
-Nota: las relaciones de fecha y fuente energética representan relaciones lógicas propuestas. Los modelos actuales no implementan todas estas llaves foráneas explícitamente.
+Las llaves primarias de las dimensiones se comprueban con pruebas `unique` y `not_null`. Las llaves foráneas se comprueban con `relationships`. Los granos compuestos de los hechos también tienen pruebas de unicidad y todos sus campos de llave tienen pruebas `not_null`. DuckDB no crea restricciones físicas de llave foránea para estos modelos; las pruebas hacen fallar el `dbt build` si se repiten llaves o falta una fila relacionada.
 
 ## 4. Descripción de las tablas de hechos
 
 ### fact_ventas_mensual
 
 Registra las ventas de energía agrupadas por periodo mensual, municipio, segmento y tipo de compra. Permite analizar energía comercializada, valor económico y cantidad de clientes.
+Su clave compuesta es mes, municipio, segmento y tipo de compra.
 
 ### fact_mercado_horario
 
 Integra el precio de bolsa y la demanda real del sistema eléctrico mediante fecha y hora. Su información procede de XM.
+Su clave compuesta es fecha y hora.
 
 ### fact_generacion_recurso
 
 Registra la generación eléctrica por recurso, fecha y hora. Se relaciona con el catálogo de recursos de XM mediante codigo_recurso.
+Su clave compuesta es fecha, hora y código de recurso.
 
 ## 5. Dimensiones descriptivas
 
@@ -73,7 +76,7 @@ Registra la generación eléctrica por recurso, fecha y hora. Se relaciona con e
 
 ## 7. Validación
 
-La ejecución de dbt build construyó nueve modelos y ejecutó 29 pruebas de calidad. Resultado registrado: 39 ejecuciones aprobadas, cero errores y cero advertencias.
+La ejecución de `dbt build` construyó 10 modelos y ejecutó 37 pruebas de calidad. Pasaron las 47 ejecuciones (10 modelos y 37 pruebas), sin errores ni advertencias. Las pruebas incluyen llaves primarias, relaciones y unicidad de las claves compuestas de los hechos.
 
 ## 8. Estado de implementación de las relaciones
 
@@ -83,8 +86,8 @@ La ejecución de dbt build construyó nueve modelos y ejecutó 29 pruebas de cal
 | fact_ventas_mensual.municipio_id → dim_municipio.municipio_id | Clave foránea | Implementada y probada |
 | fact_ventas_mensual.segmento_id → dim_segmento.segmento_id | Clave foránea | Implementada y probada |
 | fact_generacion_recurso.codigo_recurso → dim_recurso.codigo_recurso | Clave foránea | Implementada y probada |
-| fact_mercado_horario.fecha → dim_fecha.fecha | Relación lógica | Pendiente de implementar |
-| fact_generacion_recurso.fecha → dim_fecha.fecha | Relación lógica | Pendiente de implementar |
-| dim_recurso.fuente_energia → dim_fuente_energia.fuente_energia | Relación lógica | Pendiente de implementar |
+| fact_mercado_horario.fecha → dim_fecha.fecha | Prueba de relación dbt | Implementada y probada |
+| fact_generacion_recurso.fecha → dim_fecha.fecha | Prueba de relación dbt | Implementada y probada |
+| dim_recurso.fuente_energia → dim_fuente_energia.fuente_energia | Prueba de relación dbt | Implementada y probada |
 
-Las relaciones lógicas permiten identificar las asociaciones dimensionales previstas, pero no deben interpretarse como restricciones de integridad referencial implementadas en dbt.
+La dimensión de fecha reúne fechas de ventas, precio de bolsa, generación y ONI. Los recursos sin información de fuente energética reciben la categoría «No informado», incluida en `dim_fuente_energia`, para que la relación se pueda comprobar sin descartar registros.

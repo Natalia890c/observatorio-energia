@@ -32,7 +32,7 @@ select
     r.tipo_despacho,
     r.tipo_recurso_operativo,
     r.codigo_empresa,
-    r.fuente_energia,
+    coalesce(r.fuente_energia, 'No informado') as fuente_energia,
     r.estado
 from codigos c
 left join catalogo r

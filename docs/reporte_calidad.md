@@ -20,16 +20,16 @@ intencionalmente se identifican como tales, no como errores resueltos.
 
 | Fuente | Reglas documentadas | Bronze | Silver | Cuarentena |
 |---|---:|---:|---:|---:|
-| XM | 16 | 356.889 | 8.461.372 | 2 |
+| XM | 16 | 356.889 | 5.988.157 | 2 |
 | IDEAM | 16 | 47.153 | 47.153 | 0 |
 | NOAA | 16 | 921 | 921 | 0 |
 | EPM | 16 | 3.623 | 3.612 | 1 |
 | EnerAndes | 17 | 4.184 | 4.007 | 45 |
 
-Las cantidades de Silver corresponden al snapshot inspeccionado. En generación
-XM, las 2.473.215 celdas vacías se preservan como valores nulos; no se imputan
-como cero ni se consideran cuarentena. Los datos de EnerAndes y EPM incluyen
-archivos de cuarentena separados.
+Las cantidades de Silver corresponden a la ejecución actual de
+`python -m src.transformar`. En generación XM, las 2.473.215 celdas vacías se
+excluyen del archivo largo; no se imputan como cero ni se consideran
+cuarentena. Los datos de EnerAndes, XM y EPM incluyen archivos de cuarentena.
 
 ## Fuente: XM
 
@@ -42,13 +42,13 @@ desconocidas, no generación igual a cero.
 |---:|---|---|---:|---:|
 | 1 | Precio: tabla horaria ancha | Desplegar 24 horas por fecha | 1.004 filas | 24.096 filas |
 | 2 | Demanda: tabla horaria ancha | Desplegar 24 horas por fecha | 1.004 filas | 24.096 filas |
-| 3 | Generación: tabla horaria ancha | Desplegar 24 horas por recurso y fecha | 350.361 filas | Parquet existente: 8.408.664; limpiador actual: 5.935.449 |
+| 3 | Generación: tabla horaria ancha | Desplegar las horas con valor por recurso y fecha | 350.361 filas | 5.935.449 filas |
 | 4 | Columnas `Hour01`–`Hour24` faltantes | Requerir las 24 horas en cada serie | 0 columnas faltantes | 0 |
 | 5 | Fechas horarias inválidas | Convertir fecha y rechazar fechas inválidas | 0 | 0 |
 | 6 | Valores horarios de precio no numéricos | Convertir a número | 0 | 0 |
 | 7 | Valores horarios de demanda no numéricos | Convertir a número | 0 | 0 |
 | 8 | Valores horarios de generación no numéricos (excluye blancos) | Convertir valores presentes a número | 0 | 0 |
-| 9 | Horas vacías de generación | El limpiador actual excluye la observación vacía, sin convertirla en cero | 2.473.215 vacíos | 2.473.215 filas excluidas al reprocesar; Parquet existente conserva 2.473.215 nulos |
+| 9 | Horas vacías de generación | Excluir la observación vacía, sin convertirla en cero | 2.473.215 vacíos | 2.473.215 filas excluidas; 0 nulos en Silver |
 | 10 | Valores horarios negativos | Rechazar valores negativos | 0 | 0 |
 | 11 | Etiquetas de hora fuera de 1–24 | Numerar las horas del 1 al 24 | 0 | 0 |
 | 12 | Fecha/identificador duplicados en series diarias | Mantener clave fecha e identificador única | 0 | 0 |
@@ -246,35 +246,19 @@ en la hoja bronce. Los datos originales completos se mantienen en
 | XM / `xm_listado_recursos_cuarentena.parquet` | Code `PRG1` | `PROELECTRICA`; `PROELECTRICA 1` | El mismo código tiene nombres distintos; se conservan ambas filas y su linaje, sin elegir una por inferencia. |
 | EPM / `epm_tarifas_historicas_cuarentena.parquet` | `Monomia`, `Costo Unitario`, `Costo compra: Gm, i`, nivel `I` | 1 fila | Faltan los cinco valores tarifarios, el año y el mes; se conserva el registro original y el motivo. |
 
-## Diferencias entre los Parquet guardados y los limpiadores actuales
+## Ejecución del proceso y estado de los archivos
 
-Las cifras de Silver en el resumen describen los archivos que están guardados
-en este checkout; no implican que todos hayan sido regenerados tras integrar
-los esquemas Pandera. La ejecución de los limpiadores sobre los bronces locales
-confirmó estas diferencias:
+Se ejecutó `python -m src.transformar` sobre los archivos Bronze locales. El
+proceso volvió a generar las tablas Silver con los limpiadores actuales y luego
+ejecutó `dbt build`. Las columnas de Plata quedaron alineadas con los modelos
+Gold: fechas y valores de XM están tipados y usan nombres comunes; IDEAM tiene
+coordenadas numéricas; NOAA incluye `anomalia_oni`, `fase_enso` y `temporada`;
+EPM incluye el mes normalizado.
 
-- **XM generación:** `pasar_a_horario` excluye las 2.473.215 observaciones
-  vacías y devuelve 5.935.449 filas, pero el Parquet guardado contiene
-  8.408.664 filas y conserva esas celdas como nulos. Por tanto, el archivo
-  guardado aún no representa la salida del limpiador actual.
-- **XM catálogo:** el Parquet guardado tiene 2.508 recursos y hay dos registros
-  `PRG1` en su archivo de cuarentena. El limpiador actual elimina duplicados
-  exactos, pero lanza un `ValueError` ante códigos con atributos discordantes;
-  no genera esa cuarentena.
-- **IDEAM:** el limpiador actual devuelve latitud y longitud como `float64`;
-  esos dos campos están serializados como texto en los Parquet guardados. Sus
-  valores son convertibles y están dentro de rango, pero conviene regenerar
-  las salidas para que el tipo persistido coincida con el esquema.
-- **NOAA:** valores, meses, fechas y fases guardados coinciden con los
-  comprobados; los nombres de columnas del archivo actual (`oni`, `fase`) y su
-  estructura son distintos de la salida del limpiador actual
-  (`anomalia_oni`, `fase_enso`, `temporada` y `temperatura_oceanica_total`).
-- **EPM:** cantidad de Silver y cuarentena coincide con el limpiador actual;
-  el archivo guardado contiene campos derivados adicionales, por lo que su
-  estructura tampoco es idéntica a la salida actual.
-
-Estas diferencias deben resolverse regenerando los Parquet con los limpiadores
-actuales antes de afirmar que todas las salidas persistidas están sincronizadas.
+Las 2.473.215 horas vacías de generación no aparecen en Silver y no se cambian
+a cero. El proceso también separó las dos filas del código conflictivo `PRG1`
+en `xm_listado_recursos_cuarentena.parquet`. No se reportan diferencias entre
+los Parquet producidos en esta ejecución y las salidas de los limpiadores.
 
 ## Comprobación del mínimo de reglas
 

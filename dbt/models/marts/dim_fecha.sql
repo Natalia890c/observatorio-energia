@@ -6,8 +6,13 @@ with fechas as (
 
     union
 
-    select "Date"::date
+    select fecha::date
     from {{ source('plata', 'xm_precio_bolsa') }}
+
+    union
+
+    select fecha::date
+    from {{ source('plata', 'xm_generacion') }}
 
     union
 

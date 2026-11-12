@@ -1,0 +1,99 @@
+version: 2
+
+models:
+  - name: dim_mes
+    description: "Dimensión de meses de ventas."
+    columns:
+      - name: mes_id
+        data_tests: [unique, not_null]
+
+  - name: dim_municipio
+    description: "Dimensión de municipios con código DIVIPOLA."
+    columns:
+      - name: municipio_id
+        data_tests: [unique, not_null]
+
+  - name: dim_segmento
+    description: "Dimensión de segmentos de clientes."
+    columns:
+      - name: segmento_id
+        data_tests: [unique, not_null]
+
+  - name: dim_fecha
+    description: "Calendario con atributos temporales y fase ENSO."
+    columns:
+      - name: fecha_id
+        data_tests: [unique, not_null]
+      - name: fecha
+        data_tests: [not_null]
+
+  - name: dim_recurso
+    description: "Catálogo de recursos de generación eléctrica."
+    columns:
+      - name: codigo_recurso
+        data_tests: [unique, not_null]
+
+  - name: dim_fuente_energia
+    description: "Catálogo de fuentes de energía."
+    columns:
+      - name: fuente_energia
+        data_tests: [unique, not_null]
+
+  - name: fact_ventas_mensual
+    description: "Ventas de energía por mes, municipio, segmento y tipo de compra."
+    columns:
+      - name: mes_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_mes')
+                field: mes_id
+      - name: municipio_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: municipio_id
+      - name: segmento_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_segmento')
+                field: segmento_id
+      - name: tipo_compra
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Bolsa", "Contrato"]
+
+  - name: fact_mercado_horario
+    description: "Precio de bolsa y demanda del sistema por fecha y hora."
+    columns:
+      - name: fecha
+        data_tests: [not_null]
+      - name: hora
+        data_tests: [not_null]
+      - name: precio_bolsa
+        data_tests: [not_null]
+      - name: demanda_mwh
+        data_tests: [not_null]
+
+  - name: fact_generacion_recurso
+    description: "Generación eléctrica por recurso, fecha y hora."
+    columns:
+      - name: fecha
+        data_tests: [not_null]
+      - name: hora
+        data_tests: [not_null]
+      - name: codigo_recurso
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_recurso')
+                field: codigo_recurso
+      - name: generacion
+        data_tests: [not_null]

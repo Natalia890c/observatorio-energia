@@ -37,6 +37,8 @@ python -m pip install -r requirements.txt
 python -m src.pipeline          # descarga las fuentes a data/bronze/
 python -m src.pipeline --forzar # vuelve a descargar las fuentes
 python -m src.silver.enerandes  # limpia y une las ventas de EnerAndes 2023-2026
+python -m src.transformar       # limpia todas las fuentes y construye Gold con dbt
+python -m src.transformar --sin-dbt # limpia las fuentes sin ejecutar dbt
 python -m src.consultar         # consultas SQL de BI con DuckDB
 python -m pytest                # ejecuta las pruebas automáticas
 ```
@@ -79,11 +81,10 @@ que las llaves primarias y los granos de las tablas de hechos no se repitan.
 Para comprobar el proyecto, ejecute `python -m pytest -v` y
 `dbt build --project-dir dbt --profiles-dir dbt`.
 
-**Nota:** los archivos de plata guardados y algunos limpiadores actuales todavía
-tienen diferencias; por ejemplo, el archivo de generación XM conserva valores
-vacíos como nulos, mientras que el limpiador actual excluye esas observaciones.
-El informe detalla los casos identificados. Por eso, los Parquet existentes no
-deben asumirse como regenerados automáticamente por las validaciones recientes.
+`python -m src.transformar` vuelve a generar los archivos de plata con los
+limpiadores actuales; el proceso deja fuera las horas de generación vacías sin
+convertirlas en cero, conserva los registros no corregibles en cuarentena y
+ejecuta `dbt build`. Use `--sin-dbt` si solo necesita actualizar Plata.
 
 ### Fuente propia: tarifas históricas de EPM
 

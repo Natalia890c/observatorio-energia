@@ -28,8 +28,8 @@ select
     extract(quarter from f.fecha)::integer as trimestre,
     extract(day from f.fecha)::integer as dia,
     extract(dow from f.fecha)::integer as dia_semana,
-    coalesce(n.fase, 'No informado') as fase_enso,
-    n.oni as anomalia_oni
+    coalesce(n.fase_enso, 'No informado') as fase_enso,
+    n.anomalia_oni
 from fechas f
 left join {{ source('plata', 'noaa_oni') }} n
     on date_trunc('month', f.fecha) = date_trunc('month', n.fecha)

@@ -1,9 +1,9 @@
 {{ config(materialized='table') }}
 
 select distinct
-    "EnerSource" as fuente_energia
+    fuente_energia
 from {{ source('plata', 'xm_listado_recursos') }}
-where "EnerSource" is not null
+where fuente_energia is not null
 
 union
 

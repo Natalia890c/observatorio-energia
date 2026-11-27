@@ -56,9 +56,9 @@ jobs:
       - name: Capa bronce (extraccion)
         run: python -m src.pipeline
 
-      # Paso 5: capa plata. Limpia la hoja 2023 y la valida con pandera
-      - name: Capa plata (limpieza y pandera)
-        run: python -m src.silver.enerandes
+      # Paso 5: capa plata. Limpia todas las fuentes antes de construir Gold
+      - name: Capa plata (transformación)
+        run: python -m src.transformar --sin-dbt
 
       # Paso 6: capa oro. Crea el esquema estrella y ejecuta las pruebas de dbt
       - name: Capa oro (dbt build)

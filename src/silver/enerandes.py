@@ -382,7 +382,7 @@ def escribir_reporte(
             f"{metrica['regla aplicada']} | {metrica['antes']} | {metrica['despues']} |"
         )
     config.DIR_DOCS.mkdir(parents=True, exist_ok=True)
-    (config.DIR_DOCS / "reporte_calidad.md").write_text(
+    (config.DIR_DOCS / "reporte_calidad_enerandes.md").write_text(
         "\n".join(lineas) + "\n", encoding="utf-8"
     )
 
@@ -423,7 +423,7 @@ def main() -> None:
         f"Plata: {len(limpias):,} filas limpias y "
         f"{len(cuarentena):,} en cuarentena"
     )
-    log("Archivos en data/silver/ y reporte en docs/reporte_calidad.md")
+    log("Archivos en data/silver/ y reporte en docs/reporte_calidad_enerandes.md")
 
 
 if __name__ == "__main__":

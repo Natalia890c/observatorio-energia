@@ -17,7 +17,12 @@ import pandera.errors   # los errores que lanza pandera cuando una regla falla
 import pytest           # pytest: la libreria que encuentra y ejecuta las pruebas
 
 from src.quality.esquemas import ESQUEMA_VENTAS               # el esquema de la capa plata
-from src.silver.enerandes import clave_municipio, limpiar, sin_tildes   # lo que se prueba
+from src.silver.enerandes import (  # lo que se prueba
+    clave_municipio,
+    escribir_reporte,
+    limpiar,
+    sin_tildes,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -48,6 +53,17 @@ def test_sin_tildes_quita_tildes_mayusculas_y_espacios():
     # assert A == B: si A es igual a B, sigue; si no, la prueba falla.
     # Con espacios, mayusculas y tildes -> todo limpio
     assert sin_tildes(" ITAGÜÍ ") == "itagui"
+
+
+def test_reporte_enerandes_no_sobrescribe_reporte_consolidado(tmp_path, monkeypatch):
+    monkeypatch.setattr("src.silver.enerandes.config.DIR_DOCS", tmp_path)
+    reporte_consolidado = tmp_path / "reporte_calidad.md"
+    reporte_consolidado.write_text("reporte consolidado", encoding="utf-8")
+
+    escribir_reporte([], 0, 0, 0)
+
+    assert reporte_consolidado.read_text(encoding="utf-8") == "reporte consolidado"
+    assert (tmp_path / "reporte_calidad_enerandes.md").exists()
     # Con una sola tilde -> sin tilde y en minuscula
     assert sin_tildes("Medellín") == "medellin"
 
